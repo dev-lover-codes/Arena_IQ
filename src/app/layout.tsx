@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import localFont from 'next/font/local'
+import { headers } from 'next/headers'
 import "./globals.css";
 
 const inter = localFont({
@@ -22,11 +23,24 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+// RootLayout must be async so that calling `headers()` opts every page into
+// dynamic rendering. Next.js then parses the per-request Content-Security-Policy
+// response header (set by middleware) on every render and automatically stamps
+// the extracted nonce onto every script / inline-script tag it injects —
+// including the React hydration bundle. Without this, those tags have no nonce
+// and the `script-src 'nonce-…' 'strict-dynamic'` CSP blocks them, preventing
+// React from ever hydrating the page.
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Reading the nonce here is the official Next.js CSP pattern:
+  // https://nextjs.org/docs/app/guides/content-security-policy
+  // The value is forwarded by middleware via the x-nonce request header.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const nonce = (await headers()).get('x-nonce') ?? undefined
+
   return (
     <html
       lang="en"
