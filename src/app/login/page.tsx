@@ -2,13 +2,13 @@
 
 export const dynamic = 'force-dynamic'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Shield, Lock, Mail, AlertCircle, Loader2 } from 'lucide-react'
 
 // eslint-disable-next-line max-lines-per-function -- Form container and input structures for login and sign-up with dynamic status state messages.
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter()
   const supabase = createClient()
 
@@ -253,5 +253,13 @@ export default function LoginPage() {
         </div>
       </div>
     </main>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginForm />
+    </Suspense>
   )
 }
