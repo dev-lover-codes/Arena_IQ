@@ -2,8 +2,8 @@
 
 export const dynamic = 'force-dynamic'
 
-import React, { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import React, { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Shield, Lock, Mail, AlertCircle, Loader2 } from 'lucide-react'
 
@@ -12,6 +12,8 @@ export default function LoginPage() {
   const router = useRouter()
   const supabase = createClient()
 
+  const searchParams = useSearchParams()
+
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -19,6 +21,12 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null)
   const [isSignUp, setIsSignUp] = useState(false)
   const [successMsg, setSuccessMsg] = useState<string | null>(null)
+
+  // Show errors passed back from the OAuth callback (e.g. Google OAuth denied)
+  useEffect(() => {
+    const urlError = searchParams.get('error')
+    if (urlError) setError(urlError)
+  }, [searchParams])
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault()
