@@ -253,7 +253,7 @@ All tables have Row Level Security (RLS) enabled with explicit non-test-mode pol
 
 ---
 
-## Phase 11 — Security Hardening, CVE Patch, and Build Isolation (Current)
+## Phase 11 — Security Hardening, CVE Patch, and Build Isolation (Completed)
 * **Fix 1: CSP Nonce Wiring**:
   * Replace `src/lib/supabase/middleware.ts` to support optional extra headers and avoid dropping headers when setting cookies.
   * Replace `src/middleware.ts` to generate cryptographically secure nonces and apply Content-Security-Policy header.
@@ -268,6 +268,18 @@ All tables have Row Level Security (RLS) enabled with explicit non-test-mode pol
 * **Security Tradeoffs Documentation**:
   * Create `SECURITY.md` in the project root detailing Next.js version tradeoffs and active mitigations.
   * Reference `SECURITY.md` in `README.md`'s Security section.
+
+---
+
+## Phase 12 — Login Page and Google Auth Bug Fixes (Current)
+
+### Overview
+Resolve issues preventing the login page from loading in the browser, and address Google OAuth setup stability.
+
+### Actionable Steps
+1. **Fix Client-side Environment Variable Lookup**: Refactor [env.ts](file:///home/user/project-4/src/lib/env.ts) to use static property access (`process.env.NEXT_PUBLIC_SUPABASE_URL` and `process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY`) instead of dynamic string index lookups (`process.env[key]`). This allows the Next.js compiler/bundler to inject the literal values into the client-side bundle, preventing a runtime crash (`Missing required environment variable`) on the client.
+2. **Validate CSP and Redirect URIs**: Ensure that [middleware.ts](file:///home/user/project-4/src/middleware.ts) CSP allows the required OAuth redirects and connect endpoints. Ensure `window.location.origin` passes the correct origin for Supabase OAuth redirect.
+3. **Verification**: Run `npm run build` and `npm run test:run` to guarantee compilation success and that all 271 tests pass.
 
 
 
