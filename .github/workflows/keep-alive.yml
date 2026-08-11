@@ -33,18 +33,23 @@ jobs:
           SB_URL: ${{ secrets.SUPABASE_URL }}
           SB_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: |
+          set +e
           max_attempts=3
           attempt=1
+          success=0
+
           until [ $attempt -gt $max_attempts ]; do
             http_code=$(curl -s -o response.json -w "%{http_code}" \
               "${SB_URL}/auth/v1/health" \
               -H "apikey: ${SB_KEY}")
+            curl_exit=$?
 
-            echo "Attempt $attempt — HTTP status: $http_code"
+            echo "Attempt $attempt — curl exit: $curl_exit, HTTP status: $http_code"
 
-            if [ "$http_code" -ge 200 ] && [ "$http_code" -lt 300 ]; then
+            if [ $curl_exit -eq 0 ] && [ "$http_code" -ge 200 ] && [ "$http_code" -lt 300 ]; then
               echo "Supabase heartbeat OK ($http_code)"
-              exit 0
+              success=1
+              break
             fi
 
             echo "Attempt $attempt failed, retrying in 30s..."
@@ -52,9 +57,11 @@ jobs:
             attempt=$((attempt + 1))
           done
 
-          echo "::error::Supabase heartbeat failed after $max_attempts attempts"
-          cat response.json
-          exit 1
+          if [ "$success" -ne 1 ]; then
+            echo "::error::Supabase heartbeat failed after $max_attempts attempts"
+            cat response.json 2>/dev/null || true
+            exit 1
+          fi
 
       - name: Update heartbeat file and push
         run: |
